@@ -1,3 +1,88 @@
-# Literature
+#  因素分析 (Factor Analysis)
 
-Here is a review of existing methods.
+## 作用
+
+因子分析主要是找出資料的結構，抑或是**潛藏因子（Latent factor）**，以少數幾個因素來解釋一群互相可能會有關係的變數，達到**降維**的效果，但是同時又不失去其他的訊息，使變數達到精簡。
+
+## 模型
+
+先從基本的來：
+$$
+\begin{gather*}
+X = QF+\mu
+\\\\
+E(X) = \mu; \\
+ QF = 0; \\ E(F) = 0;\\
+ Var(F) = I_k
+\\\\
+Var(X) = \Sigma = \Gamma\Lambda\Gamma^{T} =\begin{pmatrix}\Gamma_1&\Gamma_2\end{pmatrix} \begin{pmatrix}\Lambda_1&0\\0&0\end{pmatrix}
+\begin{pmatrix}\Gamma_1^T\\\Gamma_2^T\end{pmatrix} 
+\end{gather*}
+$$
+$\lambda_{k+1} = \lambda_{k+2} = ... =\lambda_{p} = 0$，表示前面k個$\lambda$就已經包含所有的變異。
+
+令
+
+$$
+\begin{gather*}
+Y = \begin{pmatrix}Y_1\\Y_2\end{pmatrix} = \begin{pmatrix}\Gamma_1^T\\\Gamma_2^T\end{pmatrix} \begin{pmatrix}X-\mu\end{pmatrix} \sim (0, \begin{pmatrix}\Lambda_1&0\\0&0\end{pmatrix} )
+\end{gather*}
+$$
+
+1. 沒有常態假設！！
+2. $Y_2$服從期望值為0的退化分配， 就是說永遠都等於0
+3. 矩陣相乘表示在eigenvectors 上的投影，Y 就是投影的新變數！
+4. $F$ 為共同因素(Common Factor)，就是所有的變數會受到它影響。
+
+$$
+\begin{gather*}
+\because 
+\begin{pmatrix}\Gamma_1&\Gamma_2\end{pmatrix} 
+\begin{pmatrix}\Gamma_1^T\\\Gamma_2^T\end{pmatrix}  = I_p\\
+\\
+\therefore \begin{pmatrix}\Gamma_1&\Gamma_2\end{pmatrix}  \begin{pmatrix}Y_1\\Y_2\end{pmatrix} = \begin{pmatrix}X-\mu\end{pmatrix} 
+\\\\
+X = \Gamma_1Y_1+\Gamma_2Y_2+\mu=\Gamma_1Y_1+\mu=(\Gamma_1\Lambda_1^{1/2})(\Lambda_1^{-1/2}Y_1)+\mu
+\end{gather*}
+$$
+因此：                                                        
+$$
+Q = \Gamma_1\Lambda_1^{1/2}\ ; \ F = \Lambda_1^{-1/2}Y_1
+$$
+
+這表示$Q$包含了所有$X$的共同變異。
+
+但是因子分析想要的更多，不只要共同的變異，也想要知道個別的變異，一般來說個別的變異會包含在殘差中（$\epsilon$），但是在因子分析中我們把它歸類成個別變異($U$)，就是自己獨有的變異，我們希望這個變異越少越好，不然很難做事啊！
+
+$$
+\begin{gather*}
+X = QF+\mu+\epsilon = QF+\mu+U\\(U 為X自己的變異) 
+\\
+x_i = \sum_{l = 1}^k{q_{lj}f_l}+\mu_i+\epsilon_i
+\end{gather*}
+$$
+該模型假設有：
+- $E(F) = 0$
+- $Var(F) = I_k$
+- $E(U) = 0$
+- $cov(U_i,U_j) = 0$
+- $Var(U) = \Psi = \begin{pmatrix}\psi_{11}&0&...&0\\0&\psi_{22}&...&0\\...&...&...&...\\0&0&...&\psi_{pp}\end{pmatrix}$
+
+若符合以上的假設，我們就將這個模型稱之為**Orthogonal Factor Model**。
+
+```{r  echo=FALSE, fig.cap="A caption", out.width = '100%'}
+knitr::include_graphics("fig/FA/Orthogonal Factor Model.PNG")
+```
+- $F$: 為共同因子 (Common Factor)，表示大家都有的因素
+
+- $U$: 為特定因子 (Specific Factor)，表示只有自己有的因素。
+
+- $Q$: 包含所有的變異，且為該$X_j$由各其他各潛藏因子(latent factors)組成的比重（loading），注意，這並不是唯一的，因為降維的關係所以通常可以旋轉，（例如一個平面降維到一條線，所以會有無限多條線，所以主要就是找到那個最好解釋的組合。）
+
+其中，X自己的變異包含的共同因子變異$\sum_{l = 1}^k{q_{lj}^2}$與特定因子變異$\psi_{jj}$，前面那個是大家都有的，後面那個是只有自己有的。
+所以：
+$$
+\sigma_{X_jX_j} = Var(X_j) = \sum_{l = 1}^k{q_{lj}^2}+\psi_{jj}
+$$
+
+
