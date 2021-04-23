@@ -85,4 +85,94 @@ $$
 \sigma_{X_jX_j} = Var(X_j) = \sum_{l = 1}^k{q_{lj}^2}+\psi_{jj}
 $$
 
+## R 實作
 
+### 資料介紹
+
+```{r data set, include=F, echo=F, warning=F, message=F}
+data = read.table("course materials\\all_R_code\\MVA-master\\QID-1211-MVAfacthous\\bostonh.dat")
+head(data)
+```
+
+- $X_1$: 首都犯罪率。(per capita crime rate)
+- $X_2$: proportion of residential land zoned for large lots,
+- $X_3$: proportion of nonretail business acres,
+- $X_4$: 是否鄰近查爾斯河(Charles River) (是:1；否:0)(1 if tract bounds river, 0 otherwise),
+- $X_5$: nitric oxides concentration,
+- $X_6$: average number of rooms per dwelling,
+- $X_7$: proportion of owner-occupied units built prior to 1940,
+- $X_8$: weighted distances to five Boston employment centers,
+- $X_9$: index of accessibility to radial highways,
+- $X_{10}$: full-value property tax rate per $10,000,
+- $X_{11}$: pupil/teacher ratio,
+- $X_{12}$: 1000(B − 0.63)2I(B < 0.63) where B is the proportion of African American,
+- $X_{13}$: % lower status of the population,
+- $X_{14}$: median value of owner-occupied homes in $1000.
+
+### MLM 估計法(Maximum Likelihood Factor Analysis)
+
+#### 資料轉換
+```{r transform data}
+xt = data
+xt[, 1]  = log(data[, 1])
+xt[, 2]  = data[, 2]/10
+xt[, 3]  = log(data[, 3])
+xt[, 5]  = log(data[, 5])
+xt[, 6]  = log(data[, 6])
+xt[, 7]  = (data[, 7]^(2.5))/10000
+xt[, 8]  = log(data[, 8])
+xt[, 9]  = log(data[, 9])
+xt[, 10] = log(data[, 10])
+xt[, 11] = exp(0.4 * data[, 11])/1000
+xt[, 12] = data[, 12]/100
+xt[, 13] = sqrt(data[, 13])
+xt[, 14] = log(data[, 14])
+data = xt[, -4] # 去除01變數
+colnames(data) = c("X1", "X2", "X3", "X5", "X6", "X7", "X8", "X9", "X10", "X11", "X12", 
+    "X13", "X14") # rename variables
+```
+
+```{r standardize variables and correlation matrix}
+da  = scale(data) # standardize variables
+dat = cor(da)     # correlation matrix
+```
+
+#### 開始估計
+
+without varimax rotation factanal performs
+
+```{r without varimax rotation}
+mlm  = factanal(da, 3, rotation = "none", covmat = dat) # 3個潛在因子
+load = mlm$loadings                           # estimated factor loadings
+ld   = cbind(load[, 1], load[, 2], load[, 3]) # the estimated factor loadings matrix
+com  = diag(ld %*% t(ld))                     # communalities are calculated
+psi  = diag(dat) - diag(ld %*% t(ld))         # 特定因子估計(specific variances are calculated)
+tbl  = cbind(load[, 1], load[, 2], load[, 3], com, psi)
+```
+
+```{r Plot Factor}
+
+load <- mlm$loadings[,1:3] %>% as.data.frame() %>% tibble::add_column(X = rownames(load), .before = 1)
+
+library(ggrepel) # geom_text_repel
+
+PlotFactor <- function(i,j){
+  ggplot(data = load)+
+    geom_point(mapping = aes(x = load[,i+1], y = load[,j+1]))+
+    geom_text_repel(aes(x = load[,i+1], y = load[,j+1],label = X), size = 4)+
+    geom_hline(aes(yintercept=0), colour="#990000", linetype="dashed")+
+  geom_vline(aes(xintercept=0), colour="#990000", linetype="dashed")+
+    labs(title = stringr::str_interp("Factors${j}${i}- theta${j}${i}"),
+         x = stringr::str_interp("Factor${i}"),
+         y = stringr::str_interp("Factor${j}"))
+}
+gridExtra::grid.arrange(
+PlotFactor(1,2), # plot first factor against second
+PlotFactor(1,3), # plot first factor against third
+PlotFactor(2,3), ncol = 2) # plot second factor against third
+```
+
+
+# 
+
+Principal Component Method after varimax rotation spectral decomposition
