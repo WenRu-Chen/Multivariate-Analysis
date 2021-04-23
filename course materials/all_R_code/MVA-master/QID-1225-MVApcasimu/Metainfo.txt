@@ -1,0 +1,21 @@
+Name of QuantLet: MVApcasimu
+
+Published in: Applied Multivariate Statistical Analysis
+
+Description: Simulates a projection of a (normal) point cloud which may capture different proportions of the variance. 
+
+Keywords: principal-components, pca, eigenvalues, projection, screeplot, scatterplot, plot, graphical representation, simulation
+
+See also: MVAnpcabanki, MVAnpcabank, MVAnpcahousi, MVAnpcatime, MVAnpcafood, MVAnpcausco, MVAnpcausco2, MVAnpcausco2i, MVAcpcaiv, MVAnpcahous, MVApcabanki, MVApcabankr, MVApcabank
+
+Author: Zografia Anastasiadou, Maria Osipenko
+
+Author[Python]: 'Matthias Fengler, Liudmila Gorkun-Voevoda'
+
+Submitted: Tue, July 01 2014 by Petra Burdejova
+
+Submitted[Python]: 'Sun, April 5 2020 by Liudmila Gorkun-Voevoda'
+
+Example: 
+- 1: Direction of first component for simulated data.
+- 2: Direction of second component for simulated data.

@@ -1,0 +1,15 @@
+Name of QuantLet: MVAcareffect
+
+Published in: Applied Multivariate Statistical Analysis
+
+Description: 'Computes a linear regression of mileage on weight and displacement for car data set'
+
+Keywords: 'linear model, linear regression, least squares, R-squared, summary, F test, F-statistic, F-test, lm'
+
+Author:   Zdenek Hlavka
+Author[Matlab]:   Janek Berger
+
+Submitted: Wed, June 07 2017 by Petra Burdejova
+
+Datafile[R]: carc.rda
+Datafile[Matlab]: carc.txt

@@ -1,0 +1,12 @@
+# install.packages("bookdown", dependencies = TRUE)
+# update.packages(ask = FALSE)
+bookdown::render_book("foo.Rmd", "bookdown::gitbook")
+bookdown::publish_book(render = 'local')
+remotes::install_github('rstudio/bookdown')
+install.packages("equatiomatic")
+remove.packages("dplyr")
+install.packages("dplyr")
+
+devtools::install_github('yihui/tinytex')
+install.packages('tinytex')
+tinytex::install_tinytex()
