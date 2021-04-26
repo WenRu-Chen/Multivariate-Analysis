@@ -1,10 +1,15 @@
+---
+output:
+  word_document: default
+  html_document: default
+---
 #  因素分析 (Factor Analysis)
 
 ## 作用
 
 因子分析主要是找出資料的結構，抑或是**潛藏因子（Latent factor）**，以少數幾個因素來解釋一群互相可能會有關係的變數，達到**降維**的效果，但是同時又不失去其他的訊息，使變數達到精簡。
 
-## 模型
+## 理論模型
 
 先從基本的來：
 $$
@@ -87,7 +92,7 @@ $$
 
 令 $h_j^2 = \sum_{l=1}^2q_{jl}^2$，$h_{ij}^2$ 稱之為**communality**，而$\psi_{jj}$稱之為 **specific** **variance**。
 
-## 向量們之間的關係
+### 向量們之間的關係
 
 Variance 之間的關係
 
@@ -161,7 +166,207 @@ Q^TD^{-1}Q\ is \ diagonal
 \\\;\ (D = diag(\sigma_{X_1X_1},\sigma_{X_2X_2}...\sigma_{X_pX_p}))
 \end{gather*}
 $$
+該限制表示，$Q$除上$D$之後，任兩個culomns會垂直。
 
+### 自由度
+
+自由度 $d$：
+$$
+d = (\Sigma 原本的的參數數量)- (\Sigma 被限制的參數數量)
+$$
+
+各矩陣的自由度如下：
+
+    矩陣             矩陣類型             自由度
+---------------  -----------------  -----------------
+$\Sigma$             對稱矩陣          1/2(p(p+1))
+$Q$                 p $\times$ k      p $\times$ k
+$\Psi$               對角矩陣              p
+---------------  -----------------  -----------------
+$Q、\Psi$這兩個為限制，且因為上面的限制($Q^T\Psi^{-1}Q$ 為對角矩陣)，所以限制的參數數量會減少1/2(k(k+1))
+
+最終自由度$d$為：
+
+$$
+\begin{gather*}
+d = (\Sigma 原本的的參數數量)- (\Sigma 被限制的參數數量)\\
+=\frac{1}{2}(p(p-1))-(p+p*k-\frac{1}{2}(k(k-1)))\\
+=\frac{1}{2}(p-k)^2-\frac{1}{2}(p+k)
+\end{gather*}
+$$
+$d$會有以下三種情況
+
+- $d<0$:
+有無限多組解，亦即有很多的Q可以讓大家選，通常會出現這個情況是因為k太大，也就是想要的潛藏因子太多太貪心。
+
+- $d = 0$:
+有唯一解，就是幸福(其實也不一定啦，但是方便很多。)
+
+- $d >0$:
+並不存在確切的解，實證資料通常會遇到這樣的情情。
+
+舉例：
+
+```{r}
+DF <- function(p,k){
+  d = ((p-k)^2-(p+k))/2
+  return(d)
+}
+ DF(6,1); DF(6,2); DF(6,3); DF(6,4); DF(6,5); DF(6,6)
+```
+
+另一組資料有6個變數(X1到X6)：
+
+潛藏因子數     d          解
+-----------  -----   -------------
+1             9        無限多組解
+2             4        無限多組解
+3             0        唯一解
+4             -3       無解
+5             -5       無解
+6             -6       無解
+-----------  -----   -------------
+
+
+
+#### 例子
+
+- Example 01:
+```{r  echo=FALSE, fig.cap="Ex01.1", out.width = '100%'}
+knitr::include_graphics("fig/FA/Ex.12.1.01.PNG")
+```
+
+```{r  echo=FALSE, fig.cap="Ex 01.2", out.width = '100%'}
+knitr::include_graphics("fig/FA/Ex.12.1.02.PNG")
+```
+
+**其中，實證資料中，$\psi_{jj}$可能會小於零，通常就直接將它視為0。**
+
+- Example 02: 
+```{r  echo=FALSE, fig.cap="Ex02.1", out.width = '100%'}
+knitr::include_graphics("fig/FA/Ex.12.2.01.PNG")
+```
+
+```{r  echo=FALSE, fig.cap="Ex 02.2", out.width = '100%'}
+knitr::include_graphics("fig/FA/Ex.12.2.02.PNG")
+```
+```{r  echo=FALSE, fig.cap="Ex 02.3", out.width = '100%'}
+knitr::include_graphics("fig/FA/Ex.12.2.03.PNG")
+```
+
+### 標準化
+
+將資料標主化，令：
+$$
+Y = HXD^{-1/2}
+$$
+- $H$: Centering Matrix，$H = I_n-\frac{1}{n}11^T$  
+- $D = diag(S_{X_1X_1},S_{X_2X_2},...,S_{X_pX_p} )$  
+
+其中，
+$$
+\hat{Q}_Y = D^{-1/2}\hat{Q}_X \ ;\ \hat{\Psi}_Y = D^{-1}\hat{\Psi}_X
+$$
+
+此外，Correlation Matrix 為：
+
+$$
+R = \hat{Q}_Y\hat{Q}^T_Y+\hat{\Psi}_Y
+$$
+
+### 估計
+
+$$
+\begin{gather*}
+\Sigma = Var(X) =  QVar(F)Q^T+Var(U) = QQ^T+\Psi\\\\
+\Rightarrow \hat{\Sigma} = S =  \hat{Q}\hat{Q^T}+\hat{\Psi}
+\end{gather*}
+$$
+拆解之後可以得到：
+$$
+\begin{gather*}
+\hat{\Psi}_{jj}=S_{X_jX_j}-\sum_{l=1}^k\hat{q}_{jl}^2
+\end{gather*}
+$$
+
+表示$X_j$的自己才擁有的變異是由$X_j$的變異($S_{X_jX_j}$)再減去所有潛在因子可解釋的變異($\sum_{l=1}^k\hat{q}_{jl}^2$)
+
+其中，我們把所有潛藏因子可解釋的變異稱為共同性(communality)：
+$$
+\begin{gather*}
+h_j^2=\sum_{l=1}^kq_{jl}^2\\
+\Rightarrow \hat{h}_j^2=\sum_{l=1}^k\hat{q}_{jl}^2
+\end{gather*}
+$$
+
+### 估計方式
+
+找出$\hat{Q}$、$\Psi$與$\hat{\mu}$的方式有3種，分別為**最大概似估計法(The Maximum Likelihood Method, MLM)**、**PCM(The principal Component Method)**以及**MPF(The Method of Principal Factors)**，其中較常被使用的為前方兩種，。
+
+- **MLM**
+
+其中，和簡單回歸一樣，使用MLM的方法$X$需要常態假設$X \sim N_p(\mu, \Sigma)$，因為有這樣的限制，所以$X$的分配就不可以太奇怪，通常只要資料不要漲得太奇怪(例如極致厚尾或是雙峰)，就可以使用啦~
+
+**注意: Orthogonal Factor Model 不用常態假設喔！** 
+
+Likehood function:
+```{r  echo=FALSE, fig.cap="Ex01.1", out.width = '100%'}
+knitr::include_graphics("fig/FA/Estimation of MLM .01.PNG")
+```
+
+其中$\hat{\mu}$藏在$S$裡面。
+
+另外的想法是，將損失函數(Loss function)定義為上方 Likehood function 的樣子也可以，而且這樣就不用常態假設，不過後續推導要小心，不可以擅自將X加入常態的性質。
+
+**MLM的檢定**
+若$\hat{Q}、\hat{\Psi}$為MLE估計量，可以進行以下的檢定：
+
+假設：
+
+$$
+H_0: factor\ analysis\;  v.s\ H_1: no \ constraints\ on\ covariance\ matrix
+$$
+統計量：
+
+```{r  echo=FALSE, fig.cap="Ex01.1", out.width = '100%'}
+knitr::include_graphics("fig/FA/Likelihood Ratio Test.01.PNG")
+```
+
+我們是希望不拒絕虛無假設，表示可以進行 factor analysis。
+
+Bartlett 於 1954 發表的新的統計量，表示該統計量可以更快的收斂至該卡方分配。
+```{r  echo=FALSE, fig.cap="Ex01.1", out.width = '100%'}
+knitr::include_graphics("fig/FA/Likelihood Ratio Test.02.PNG")
+```
+
+
+- **PCM**
+
+這個方始會先找出$\hat{Q}$，其中
+$$
+\begin{gather*}
+S = \Gamma \Lambda \Gamma^T
+\\
+\hat{Q} = (\sqrt{\lambda_1}\gamma_1,\sqrt{\lambda_2}\gamma_2,...,\sqrt{\lambda_k}\gamma_k, )
+\end{gather*}
+$$
+接著
+```{r  echo=FALSE, fig.cap="Ex01.1", out.width = '100%'}
+knitr::include_graphics("fig/FA/PCM.01.PNG")
+```
+
+其中，
+
+```{r  echo=FALSE, fig.cap="Ex01.1", out.width = '100%'}
+knitr::include_graphics("fig/FA/PCM.02.PNG")
+```
+- 
+
+
+
+
+
+參考資料：http://sfb649.wiwi.hu-berlin.de/fedc_homepage/xplore/tutorials/mvahtmlnode73.html
 
 ## R 實作
 
